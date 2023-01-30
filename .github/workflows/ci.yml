@@ -1,0 +1,78 @@
+name: CI
+on:
+  - push
+  - pull_request
+jobs:
+  fmt:
+    name: rustfmt check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          profile: default
+      - run: cargo +nightly fmt --all -- --check
+  lint:
+    name: clippy lint
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        toolchain:
+          - stable
+          - beta
+          - nightly
+        stability:
+          - ""
+          - "--release"
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{matrix.toolchain}}
+          profile: default
+          default: true
+      - uses: actions-rs/clippy-check@v1
+        with:
+          token: ${{github.token}}
+          args: --all ${{matrix.stability}}
+          name: debug${{matrix.stability}}
+  test:
+    name: unit tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        toolchain:
+          - stable
+          - beta
+          - nightly
+        stability:
+          - ""
+          - "--release"
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{matrix.toolchain}}
+          profile: default
+          default: true
+          override: true
+      - name: cargo test
+        if: ${{ matrix.toolchain != 'nightly' || matrix.stability != '' }}
+        run: "cargo test --all ${{matrix.stability}}"
+      - name: cargo test
+        if: ${{ matrix.toolchain == 'nightly' && matrix.stability == '' }}
+        run: "cargo test --no-fail-fast --all"
+        env:
+          CARGO_INCREMENTAL: "0"
+          RUSTFLAGS: '-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests'
+          RUSTDOCFLAGS: '-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests'
+      - id: coverage
+        name: coverage report
+        if: ${{ matrix.toolchain == 'nightly' && matrix.stability == '' }}
+        uses: actions-rs/grcov@v0.1
+      - name: upload to codecov
+        if: ${{ matrix.toolchain == 'nightly' && matrix.stability == '' }}
+        uses: codecov/codecov-action@v2.1.0
+        with:
+          files: ${{ steps.coverage.outputs.report }}
