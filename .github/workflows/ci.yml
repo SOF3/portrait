@@ -34,7 +34,7 @@ jobs:
           default: true
       - uses: actions-rs/clippy-check@v1
         with:
-          token: ${{github.token}}
+          token: ${{secrets.GITHUB_TOKEN}}
           args: --all ${{matrix.stability}}
           name: debug${{matrix.stability}}
   test:
