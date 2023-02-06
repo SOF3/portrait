@@ -18,13 +18,19 @@ use crate::{filler, Completer};
 /// portrait_framework::proc_macro_filler!(foo, MyGenerator);
 /// struct MyGenerator(portrait_framework::NoArgs);
 /// impl portrait_framework::Generator for MyGenerator {
-///     fn generate_const(&mut self, item: &syn::TraitItemConst) -> Result<syn::ImplItemConst> {
+///     fn generate_const(
+///         &mut self,
+///         item: &syn::TraitItemConst,
+///     ) -> syn::Result<syn::ImplItemConst> {
 ///         todo!()
 ///     }
-///     fn generate_method(&mut self, item: &syn::TraitItemMethod) -> Result<syn::ImplItemMethod> {
+///     fn generate_method(
+///         &mut self,
+///         item: &syn::TraitItemMethod,
+///     ) -> syn::Result<syn::ImplItemMethod> {
 ///         todo!()
 ///     }
-///     fn generate_type(&mut self, item: &syn::TraitItemType) -> Result<syn::ImplItemType> {
+///     fn generate_type(&mut self, item: &syn::TraitItemType) -> syn::Result<syn::ImplItemType> {
 ///         todo!()
 ///     }
 /// }
