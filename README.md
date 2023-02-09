@@ -69,9 +69,7 @@ the `#[portrait::make]` module generates it in the same module as the `FooBar` t
 
 - `default`:
   Implements each missing method and constant by delegating to `Default::default()`
-  (`Default` is const-unstable and requires nightly with the feature `const_default_impls`).
-- `log`:
-  Calls `log::log!()` in each missing method with the parameters.
+  (`Default` is const-unstable and requires nightly with `#![feature(const_default_impls)]`).
 - `delegate`:
   Proxies each missing method, constant and type
   to an expression (usually `self.field`) or another type implementing the same trait.

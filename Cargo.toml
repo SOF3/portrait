@@ -3,7 +3,7 @@ members = [".", "codegen", "framework"]
 
 [package]
 name = "portrait"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["SOFe <sofe2038@gmail.com>"]
 edition = "2021"
 license = "Apache-2.0"
@@ -12,5 +12,10 @@ homepage = "https://github.com/SOF3/portrait"
 readme = "README.md"
 description = "Fills an `impl` with the associated items required by the trait."
 
+[features]
+default = ["default-filler", "delegate-filler"]
+default-filler = ["portrait-codegen/default-filler"]
+delegate-filler = ["portrait-codegen/delegate-filler"]
+
 [dependencies]
-portrait-codegen = {version = "0.1.0", path = "./codegen"}
+portrait-codegen = {version = "0.2.0", path = "./codegen"}

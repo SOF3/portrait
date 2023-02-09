@@ -7,7 +7,7 @@ use quote::quote;
 use syn::parse::Parse;
 use syn::{Error, Result};
 
-use crate::{filler, Completer};
+use crate::{filler, Fill};
 
 /// One-line wrapper that declares a filler macro.
 ///
@@ -15,22 +15,28 @@ use crate::{filler, Completer};
 /// ```
 /// # extern crate proc_macro;
 /// #
-/// portrait_framework::proc_macro_filler!(foo, MyGenerator);
-/// struct MyGenerator(portrait_framework::NoArgs);
-/// impl portrait_framework::Generator for MyGenerator {
+/// portrait_framework::proc_macro_filler!(foo, Generator);
+/// struct Generator(portrait_framework::NoArgs);
+/// impl portrait_framework::Generate for Generator {
 ///     fn generate_const(
 ///         &mut self,
+///         context: portrait_framework::Context,
 ///         item: &syn::TraitItemConst,
 ///     ) -> syn::Result<syn::ImplItemConst> {
 ///         todo!()
 ///     }
 ///     fn generate_method(
 ///         &mut self,
+///         context: portrait_framework::Context,
 ///         item: &syn::TraitItemMethod,
 ///     ) -> syn::Result<syn::ImplItemMethod> {
 ///         todo!()
 ///     }
-///     fn generate_type(&mut self, item: &syn::TraitItemType) -> syn::Result<syn::ImplItemType> {
+///     fn generate_type(
+///         &mut self,
+///         context: portrait_framework::Context,
+///         item: &syn::TraitItemType,
+///     ) -> syn::Result<syn::ImplItemType> {
 ///         todo!()
 ///     }
 /// }
@@ -48,7 +54,7 @@ macro_rules! proc_macro_filler {
 }
 
 /// Shorthand from [`fn@filler`] to [`complete`] ([`proc_macro`] version).
-pub fn completer_filler<ArgsT: Parse, GeneratorT: Generator>(
+pub fn completer_filler<ArgsT: Parse, GeneratorT: Generate>(
     input: proc_macro::TokenStream,
     ctor: fn(ArgsT) -> GeneratorT,
 ) -> proc_macro::TokenStream {
@@ -56,16 +62,16 @@ pub fn completer_filler<ArgsT: Parse, GeneratorT: Generator>(
 }
 
 /// Shorthand from [`fn@filler`] to [`complete`] ([`proc_macro2`] version).
-pub fn completer_filler2<ArgsT: Parse, GeneratorT: Generator>(
+pub fn completer_filler2<ArgsT: Parse, GeneratorT: Generate>(
     input: TokenStream,
     ctor: fn(ArgsT) -> GeneratorT,
 ) -> Result<TokenStream> {
-    struct CompleterImpl<GeneratorT, ArgsT>(fn(ArgsT) -> GeneratorT);
+    struct Filler<GenerateT, ArgsT>(fn(ArgsT) -> GenerateT);
 
-    impl<GeneratorT: Generator, ArgsT: Parse> Completer for CompleterImpl<GeneratorT, ArgsT> {
+    impl<GenerateT: Generate, ArgsT: Parse> Fill for Filler<GenerateT, ArgsT> {
         type Args = ArgsT;
 
-        fn complete(
+        fn fill(
             self,
             portrait: &[syn::TraitItem],
             args: Self::Args,
@@ -76,7 +82,7 @@ pub fn completer_filler2<ArgsT: Parse, GeneratorT: Generator>(
         }
     }
 
-    filler(input, CompleterImpl(ctor))
+    filler(input, Filler(ctor))
 }
 
 /// Invokes the generator on each unimplemented item
@@ -84,37 +90,60 @@ pub fn completer_filler2<ArgsT: Parse, GeneratorT: Generator>(
 pub fn complete(
     trait_items: &[syn::TraitItem],
     impl_block: &syn::ItemImpl,
-    mut generator: impl Generator,
+    mut generator: impl Generate,
 ) -> syn::Result<syn::ItemImpl> {
     let mut output = impl_block.clone();
 
+    let ctx = Context { all_trait_items: trait_items, impl_block };
+
     let items = subtract_items(trait_items, impl_block)?;
     for trait_item in items.consts.values() {
-        let impl_item = generator.generate_const(trait_item)?;
+        let impl_item = generator.generate_const(Context { ..ctx }, trait_item)?;
         output.items.push(syn::ImplItem::Const(impl_item));
     }
     for trait_item in items.methods.values() {
-        let impl_item = generator.generate_method(trait_item)?;
+        let impl_item = generator.generate_method(Context { ..ctx }, trait_item)?;
         output.items.push(syn::ImplItem::Method(impl_item));
     }
     for trait_item in items.types.values() {
-        let impl_item = generator.generate_type(trait_item)?;
+        let impl_item = generator.generate_type(Context { ..ctx }, trait_item)?;
         output.items.push(syn::ImplItem::Type(impl_item));
     }
 
     Ok(output)
 }
 
+/// Available context parameters passed to generators.
+#[non_exhaustive]
+pub struct Context<'t> {
+    /// All known trait items in the portrait.
+    pub all_trait_items: &'t [syn::TraitItem],
+    /// The input impl block.
+    pub impl_block:      &'t syn::ItemImpl,
+}
+
 /// Generates missing items.
-pub trait Generator {
+pub trait Generate {
     /// Implements an associated constant.
-    fn generate_const(&mut self, item: &syn::TraitItemConst) -> Result<syn::ImplItemConst>;
+    fn generate_const(
+        &mut self,
+        ctx: Context,
+        item: &syn::TraitItemConst,
+    ) -> Result<syn::ImplItemConst>;
 
     /// Implements an associated function.
-    fn generate_method(&mut self, item: &syn::TraitItemMethod) -> Result<syn::ImplItemMethod>;
+    fn generate_method(
+        &mut self,
+        ctx: Context,
+        item: &syn::TraitItemMethod,
+    ) -> Result<syn::ImplItemMethod>;
 
     /// Implements an associated type.
-    fn generate_type(&mut self, item: &syn::TraitItemType) -> Result<syn::ImplItemType>;
+    fn generate_type(
+        &mut self,
+        ctx: Context,
+        item: &syn::TraitItemType,
+    ) -> Result<syn::ImplItemType>;
 }
 
 /// Shorthand for `TraitItemMap::new().minus(ImplItemMap::new())`.

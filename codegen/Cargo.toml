@@ -1,12 +1,16 @@
 [package]
 name = "portrait-codegen"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["SOFe <sofe2038@gmail.com>"]
 edition = "2021"
 license = "Apache-2.0"
 repository = "https://github.com/SOF3/portrait"
 homepage = "https://github.com/SOF3/portrait"
 description = "Internal procedural macros for portrait"
+
+[features]
+default-filler = []
+delegate-filler = []
 
 [lib]
 proc-macro = true
@@ -17,4 +21,4 @@ proc-macro2 = "1.0.50"
 quote = "1.0.23"
 rand = "0.8.5"
 syn = {version = "1.0.107", features = ["full", "visit"]}
-portrait-framework = {version = "0.1.0", path = "../framework"}
+portrait-framework = {version = "0.2.0", path = "../framework"}

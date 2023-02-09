@@ -3,9 +3,13 @@ use quote::quote;
 use syn::spanned::Spanned;
 use syn::{Error, Result};
 
-pub(crate) struct GeneratorT(pub(crate) portrait_framework::NoArgs);
-impl portrait_framework::Generator for GeneratorT {
-    fn generate_const(&mut self, item: &syn::TraitItemConst) -> Result<syn::ImplItemConst> {
+pub(crate) struct Generator(pub(crate) portrait_framework::NoArgs);
+impl portrait_framework::Generate for Generator {
+    fn generate_const(
+        &mut self,
+        _: portrait_framework::Context,
+        item: &syn::TraitItemConst,
+    ) -> Result<syn::ImplItemConst> {
         Ok(syn::ImplItemConst {
             attrs:       item
                 .attrs
@@ -25,7 +29,11 @@ impl portrait_framework::Generator for GeneratorT {
         })
     }
 
-    fn generate_method(&mut self, item: &syn::TraitItemMethod) -> Result<syn::ImplItemMethod> {
+    fn generate_method(
+        &mut self,
+        _: portrait_framework::Context,
+        item: &syn::TraitItemMethod,
+    ) -> Result<syn::ImplItemMethod> {
         Ok(syn::ImplItemMethod {
             attrs:       item
                 .attrs
@@ -43,7 +51,11 @@ impl portrait_framework::Generator for GeneratorT {
         })
     }
 
-    fn generate_type(&mut self, item: &syn::TraitItemType) -> Result<syn::ImplItemType> {
+    fn generate_type(
+        &mut self,
+        _: portrait_framework::Context,
+        item: &syn::TraitItemType,
+    ) -> Result<syn::ImplItemType> {
         Err(Error::new_spanned(item, "portrait::default cannot implement types automatically"))
     }
 }
