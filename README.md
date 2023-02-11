@@ -61,7 +61,8 @@ trait FooBar {...}
 
 If the fill attribute fails with an error about undefined `foo_bar_portrait`,
 import it manually together with the FooBar trait;
-the `#[portrait::make]` module generates it in the same module as the `FooBar` trait.
+the `#[portrait::make]` attribute generates this new module
+in the same module as the `FooBar` trait.
 
 ## Provided fillers
 

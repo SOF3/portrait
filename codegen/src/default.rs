@@ -56,7 +56,10 @@ impl portrait_framework::Generate for Generator {
         _: portrait_framework::Context,
         item: &syn::TraitItemType,
     ) -> Result<syn::ImplItemType> {
-        Err(Error::new_spanned(item, "portrait::default cannot implement types automatically"))
+        Err(Error::new_spanned(
+            item,
+            "portrait::default cannot implement associated types automatically",
+        ))
     }
 }
 

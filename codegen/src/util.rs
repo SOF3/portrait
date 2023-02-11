@@ -1,4 +1,5 @@
-use proc_macro2::Span;
+use proc_macro2::{Span, TokenStream, TokenTree};
+use quote::ToTokens;
 use syn::parse::{Parse, ParseStream};
 use syn::Result;
 pub(crate) struct Once<T>(pub(crate) Option<(Span, T)>);
@@ -44,4 +45,39 @@ impl<T: ParseArgs> Parse for Args<T> {
 
         Ok(Self(args))
     }
+}
+
+pub(crate) fn set_sig_arg_span(sig: &mut syn::Signature, span: Span) -> Result<()> {
+    for input in &mut sig.inputs {
+        match input {
+            syn::FnArg::Receiver(receiver) => {
+                receiver.self_token.span = span;
+            }
+            syn::FnArg::Typed(pat_ty) => {
+                let pat = &mut *pat_ty.pat;
+                *pat = copy_with_span(pat, span)?;
+            }
+        }
+    }
+
+    Ok(())
+}
+
+fn copy_with_span<T: ToTokens + Parse>(t: &T, span: Span) -> Result<T> {
+    let mut ts = t.to_token_stream();
+    ts = copy_ts_with_span(ts, span);
+    syn::parse2(ts)
+}
+
+fn copy_ts_with_span(ts: TokenStream, span: Span) -> TokenStream {
+    ts.into_iter()
+        .map(|mut tt| {
+            if let TokenTree::Group(group) = tt {
+                let group_ts = copy_ts_with_span(group.stream(), span);
+                tt = TokenTree::Group(proc_macro2::Group::new(group.delimiter(), group_ts));
+            }
+            tt.set_span(span);
+            tt
+        })
+        .collect()
 }

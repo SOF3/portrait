@@ -129,6 +129,19 @@
 //!
 //!   [macro_rules_attribute]: https://docs.rs/macro_rules_attribute/
 
+use std::fmt;
+
+/// Placeholder values when a [cfg](attr@cfg)-disabled parameter is used in [`log`].
+#[doc(hidden)]
+pub struct DummyDebug {
+    /// The placeholder text
+    pub text: &'static str,
+}
+
+impl fmt::Debug for DummyDebug {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { f.write_str(self.text) }
+}
+
 /// Generates a dummy implementation that returns [`Default::default()`]
 /// in all associated constants and functions.
 ///
@@ -161,7 +174,7 @@ pub use portrait_codegen::default;
 //
 
 //
-/// Generates a dummy implementation that delegates
+/// Generates an implementation that delegates
 /// to another implementation of the same trait.
 ///
 /// # Syntax
@@ -223,7 +236,7 @@ pub use portrait_codegen::default;
 /// since all constants and types would be recursively defined (`type X = X;`),
 /// and all functions would be recursively implemented (`fn x() { x() }`).
 #[doc(inline)]
-#[cfg(feature = "default-filler")]
+#[cfg(feature = "delegate-filler")]
 pub use portrait_codegen::delegate;
 //
 
@@ -261,6 +274,64 @@ pub use portrait_codegen::delegate;
 /// or overridden with `name` in [`#[make]`].
 #[doc(inline)]
 pub use portrait_codegen::fill;
+//
+
+//
+/// Generates an implementation that simply logs the parameters and returns `()`.
+///
+/// # Syntax
+/// ```
+/// # /*
+/// #[portrait::fill(portrait::log($logger:path))]
+/// # */
+/// ```
+///
+/// You can also specify leading parameters to the macro call:
+/// ```
+/// # /*
+/// #[portrait::fill(portrait::log($logger:path, $($args:expr),*))]
+/// # */
+/// ```
+///
+/// - `$logger` is the path to the macro for logging, e.g. `log::info` or [`println!`].
+/// - `$args` are the arguments passed to the macro before the format template,
+///   e.g. the log level in `log::log` or the writer in [`writeln!`].
+///
+/// Associated constants are not supported.
+/// Associated types are always `()`
+/// (we assume to be the return likely type of `$logger`).
+///
+/// Currently, this macro does not properly support `#[cfg]` on arguments yet.
+///
+/// # Example
+/// ```
+/// // Imports required for calling the `write!` macro
+/// use std::fmt::{self, Write};
+///
+/// #[portrait::make]
+/// trait Foo {
+///     type Bar;
+///     fn qux(&mut self, i: i64) -> Self::Bar;
+/// }
+///
+/// #[derive(Default)]
+/// struct Receiver {
+///     buffer: String,
+/// }
+///
+/// #[portrait::fill(portrait::log(
+///     write -> fmt::Result,
+///     &mut self.buffer,
+/// ))]
+/// impl Foo for Receiver {}
+///
+/// let mut recv = Receiver::default();
+/// recv.qux(3);
+/// assert_eq!(recv.buffer.as_str(), "qux(3)");
+/// ```
+#[doc(inline)]
+#[cfg(feature = "log-filler")]
+pub use portrait_codegen::log;
 //
 
 //

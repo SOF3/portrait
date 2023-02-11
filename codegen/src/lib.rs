@@ -29,3 +29,11 @@ mod delegate;
 pub fn delegate(input: TokenStream) -> TokenStream {
     portrait_framework::completer_filler(input, delegate::Generator)
 }
+
+#[cfg(feature = "log-filler")]
+mod log;
+#[cfg(feature = "log-filler")]
+#[proc_macro]
+pub fn log(input: TokenStream) -> TokenStream {
+    portrait_framework::completer_filler(input, log::Generator)
+}

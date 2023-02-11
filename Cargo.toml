@@ -13,9 +13,13 @@ readme = "README.md"
 description = "Fills an `impl` with the associated items required by the trait."
 
 [features]
-default = ["default-filler", "delegate-filler"]
+default = ["default-filler", "delegate-filler", "log-filler"]
 default-filler = ["portrait-codegen/default-filler"]
 delegate-filler = ["portrait-codegen/delegate-filler"]
+log-filler = ["portrait-codegen/log-filler"]
 
 [dependencies]
 portrait-codegen = {version = "0.2.0", path = "./codegen"}
+
+[dev-dependencies]
+log = "0.4.17"

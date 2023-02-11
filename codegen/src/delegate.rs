@@ -5,6 +5,8 @@ use quote::{quote, ToTokens};
 use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
 
+use crate::util::set_sig_arg_span;
+
 pub(crate) struct Generator(pub(crate) Arg);
 impl portrait_framework::Generate for Generator {
     fn generate_const(
@@ -39,6 +41,10 @@ impl portrait_framework::Generate for Generator {
         let trait_path = &ctx.impl_block.trait_.as_ref().expect("checked in framework").1;
 
         let mut sig = item.sig.clone();
+
+        if let Some(delegate_expr) = delegate_value {
+            set_sig_arg_span(&mut sig, delegate_expr.expr.span())?;
+        }
         let sig_ident = sig.ident.clone();
 
         let args = sig
@@ -68,9 +74,6 @@ impl portrait_framework::Generate for Generator {
                             )
                         })?
                         .expr;
-
-                    // Macro hygiene: allow `self` to be used in the call site
-                    receiver.self_token = syn::Token![self](delegate_expr.span());
 
                     Ok(quote! { #(#arg_attrs)* #ref_ #mut_ #delegate_expr })
                 }

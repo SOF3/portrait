@@ -11,6 +11,7 @@ description = "Internal procedural macros for portrait"
 [features]
 default-filler = []
 delegate-filler = []
+log-filler = []
 
 [lib]
 proc-macro = true
@@ -22,3 +23,4 @@ quote = "1.0.23"
 rand = "0.8.5"
 syn = {version = "1.0.107", features = ["full", "visit"]}
 portrait-framework = {version = "0.2.0", path = "../framework"}
+itertools = "0.10.5"

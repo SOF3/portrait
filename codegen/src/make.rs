@@ -14,7 +14,7 @@ use crate::util::{Once, ParseArgs};
 pub(crate) fn run(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
     let item = syn::parse2::<syn::ItemTrait>(item)?;
     let vis = &item.vis;
-    let item_body = &item.items;
+    let unstripped_trait_items = item.items.clone();
 
     let item_ident = &item.ident;
 
@@ -23,13 +23,13 @@ pub(crate) fn run(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
     let mod_name =
         mod_name.get_or(|| format_ident!("{}_portrait", item.ident.to_string().to_snake_case()));
 
-    let mut import_collector = ImportCollector::default();
-    for trait_item in &item.items {
-        import_collector.visit_trait_item(trait_item)
-    }
-
     let mut imports: Vec<_> = imports.into_iter().map(ToTokens::into_token_stream).collect();
     if auto_imports.get_or(|| false) {
+        let mut import_collector = ImportCollector::default();
+        for trait_item in &item.items {
+            import_collector.visit_trait_item(trait_item)
+        }
+
         imports.extend(import_collector.idents.iter().map(|ident| quote!(super::super::#ident)));
     }
 
@@ -69,7 +69,7 @@ pub(crate) fn run(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
         macro_rules! #macro_random_name {
             (@TARGET {$target_macro:path} @ARGS {$($args:tt)*} @IMPL {$($impl:tt)*} @DEBUG_PRINT_FILLER_OUTPUT {$debug_print:literal}) => {
                 $target_macro! {
-                    TRAIT_PORTRAIT { #({#item_body})* }
+                    TRAIT_PORTRAIT { #({#unstripped_trait_items})* }
                     ARGS { $($args)* }
                     IMPL { $($impl)* }
                     DEBUG_PRINT_FILLER_OUTPUT { $debug_print }
