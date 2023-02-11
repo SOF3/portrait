@@ -1,3 +1,5 @@
+#![allow(dead_code)] // due to disabled features
+
 use proc_macro2::{Span, TokenStream, TokenTree};
 use quote::ToTokens;
 use syn::parse::{Parse, ParseStream};
