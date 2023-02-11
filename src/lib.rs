@@ -52,18 +52,21 @@
 //!
 //! If the fill attribute fails with an error about undefined `foo_bar_portrait`,
 //! import it manually together with the FooBar trait;
-//! the `#[portrait::make]` module generates it in the same module as the `FooBar` trait.
+//! the `#[portrait::make]` attribute generates this new module
+//! in the same module as the `FooBar` trait.
 //!
 //! ## Provided fillers
 //!
 //! `portrait` provides the following filler macros:
 //!
-//! - `default`:
-//!   Implements each missing method and constant by delegating to `Default::default()`
+//! - [`default`]:
+//!   Implements each missing method and constant by delegating to [`Default::default()`]
 //!   (`Default` is const-unstable and requires nightly with `#![feature(const_default_impls)]`).
-//! - `delegate`:
+//! - [`delegate`]:
 //!   Proxies each missing method, constant and type
 //!   to an expression (usually `self.field`) or another type implementing the same trait.
+//! - [`log`]:
+//!   Calls a [`format!`]-like macro with the method arguments.
 //!
 //! ## How this works
 //!

@@ -3,7 +3,7 @@ members = [".", "codegen", "framework"]
 
 [package]
 name = "portrait"
-version = "0.2.0"
+version = "0.2.1"
 authors = ["SOFe <sofe2038@gmail.com>"]
 edition = "2021"
 license = "Apache-2.0"
@@ -19,7 +19,7 @@ delegate-filler = ["portrait-codegen/delegate-filler"]
 log-filler = ["portrait-codegen/log-filler"]
 
 [dependencies]
-portrait-codegen = {version = "0.2.0", path = "./codegen"}
+portrait-codegen = {version = "0.2.1", path = "./codegen"}
 
 [dev-dependencies]
 log = "0.4.17"
