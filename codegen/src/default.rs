@@ -14,13 +14,14 @@ impl portrait_framework::Generate for Generator {
             attrs:       item
                 .attrs
                 .iter()
-                .filter(|attr| attr.path.is_ident("cfg"))
+                .filter(|attr| attr.path().is_ident("cfg"))
                 .cloned()
                 .collect(),
             vis:         syn::Visibility::Inherited,
             defaultness: None,
             const_token: item.const_token,
             ident:       item.ident.clone(),
+            generics:    item.generics.clone(),
             colon_token: item.colon_token,
             ty:          item.ty.clone(),
             eq_token:    syn::Token![=](item.span()),
@@ -29,16 +30,16 @@ impl portrait_framework::Generate for Generator {
         })
     }
 
-    fn generate_method(
+    fn generate_fn(
         &mut self,
         _: portrait_framework::Context,
-        item: &syn::TraitItemMethod,
-    ) -> Result<syn::ImplItemMethod> {
-        Ok(syn::ImplItemMethod {
+        item: &syn::TraitItemFn,
+    ) -> Result<syn::ImplItemFn> {
+        Ok(syn::ImplItemFn {
             attrs:       item
                 .attrs
                 .iter()
-                .filter(|attr| attr.path.is_ident("cfg"))
+                .filter(|attr| attr.path().is_ident("cfg"))
                 .cloned()
                 .collect(),
             vis:         syn::Visibility::Inherited,
@@ -70,8 +71,11 @@ fn unuse_sig(mut sig: syn::Signature) -> syn::Signature {
                 pound_token:   syn::Token![#](Span::call_site()),
                 style:         syn::AttrStyle::Outer,
                 bracket_token: syn::token::Bracket(Span::call_site()),
-                path:          syn::parse2(quote!(allow)).unwrap(),
-                tokens:        quote!((unused_variables)),
+                meta:          syn::Meta::List(syn::MetaList {
+                    path:      syn::parse2(quote!(allow)).unwrap(),
+                    delimiter: syn::MacroDelimiter::Paren(syn::token::Paren(typed.span())),
+                    tokens:    quote!(unused_variables),
+                }),
             });
         }
     }

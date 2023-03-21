@@ -25,11 +25,11 @@ use crate::{filler, Fill};
 ///     ) -> syn::Result<syn::ImplItemConst> {
 ///         todo!()
 ///     }
-///     fn generate_method(
+///     fn generate_fn(
 ///         &mut self,
 ///         context: portrait_framework::Context,
-///         item: &syn::TraitItemMethod,
-///     ) -> syn::Result<syn::ImplItemMethod> {
+///         item: &syn::TraitItemFn,
+///     ) -> syn::Result<syn::ImplItemFn> {
 ///         todo!()
 ///     }
 ///     fn generate_type(
@@ -101,9 +101,9 @@ pub fn complete(
         let impl_item = generator.generate_const(Context { ..ctx }, trait_item)?;
         output.items.push(syn::ImplItem::Const(impl_item));
     }
-    for trait_item in items.methods.values() {
-        let impl_item = generator.generate_method(Context { ..ctx }, trait_item)?;
-        output.items.push(syn::ImplItem::Method(impl_item));
+    for trait_item in items.fns.values() {
+        let impl_item = generator.generate_fn(Context { ..ctx }, trait_item)?;
+        output.items.push(syn::ImplItem::Fn(impl_item));
     }
     for trait_item in items.types.values() {
         let impl_item = generator.generate_type(Context { ..ctx }, trait_item)?;
@@ -132,11 +132,7 @@ pub trait Generate {
     ) -> Result<syn::ImplItemConst>;
 
     /// Implements an associated function.
-    fn generate_method(
-        &mut self,
-        ctx: Context,
-        item: &syn::TraitItemMethod,
-    ) -> Result<syn::ImplItemMethod>;
+    fn generate_fn(&mut self, ctx: Context, item: &syn::TraitItemFn) -> Result<syn::ImplItemFn>;
 
     /// Implements an associated type.
     fn generate_type(
@@ -160,11 +156,11 @@ pub fn subtract_items<'t>(
 #[derive(Default)]
 pub struct TraitItemMap<'t> {
     /// Associated constants in the trait.
-    pub consts:  HashMap<syn::Ident, &'t syn::TraitItemConst>,
+    pub consts: HashMap<syn::Ident, &'t syn::TraitItemConst>,
     /// Associated functions in the trait.
-    pub methods: HashMap<syn::Ident, &'t syn::TraitItemMethod>,
+    pub fns:    HashMap<syn::Ident, &'t syn::TraitItemFn>,
     /// Associated types in the trait.
-    pub types:   HashMap<syn::Ident, &'t syn::TraitItemType>,
+    pub types:  HashMap<syn::Ident, &'t syn::TraitItemType>,
 }
 
 impl<'t> TraitItemMap<'t> {
@@ -176,8 +172,8 @@ impl<'t> TraitItemMap<'t> {
                 syn::TraitItem::Const(item) => {
                     map.consts.insert(item.ident.clone(), item);
                 }
-                syn::TraitItem::Method(item) => {
-                    map.methods.insert(item.sig.ident.clone(), item);
+                syn::TraitItem::Fn(item) => {
+                    map.fns.insert(item.sig.ident.clone(), item);
                 }
                 syn::TraitItem::Type(item) => {
                     map.types.insert(item.ident.clone(), item);
@@ -199,8 +195,8 @@ impl<'t> TraitItemMap<'t> {
             }
         }
 
-        for (ident, impl_item) in &impl_items.methods {
-            if self.methods.remove(ident).is_none() {
+        for (ident, impl_item) in &impl_items.fns {
+            if self.fns.remove(ident).is_none() {
                 return Err(Error::new_spanned(
                     impl_item,
                     "no associated function called {ident} in trait",
@@ -225,11 +221,11 @@ impl<'t> TraitItemMap<'t> {
 #[derive(Default)]
 pub struct ImplItemMap<'t> {
     /// Associated constants in the implementation.
-    pub consts:  HashMap<syn::Ident, &'t syn::ImplItemConst>,
+    pub consts: HashMap<syn::Ident, &'t syn::ImplItemConst>,
     /// Associated functions in the implementation.
-    pub methods: HashMap<syn::Ident, &'t syn::ImplItemMethod>,
+    pub fns:    HashMap<syn::Ident, &'t syn::ImplItemFn>,
     /// Associated types in the implementation.
-    pub types:   HashMap<syn::Ident, &'t syn::ImplItemType>,
+    pub types:  HashMap<syn::Ident, &'t syn::ImplItemType>,
 }
 
 impl<'t> ImplItemMap<'t> {
@@ -241,8 +237,8 @@ impl<'t> ImplItemMap<'t> {
                 syn::ImplItem::Const(item) => {
                     map.consts.insert(item.ident.clone(), item);
                 }
-                syn::ImplItem::Method(item) => {
-                    map.methods.insert(item.sig.ident.clone(), item);
+                syn::ImplItem::Fn(item) => {
+                    map.fns.insert(item.sig.ident.clone(), item);
                 }
                 syn::ImplItem::Type(item) => {
                     map.types.insert(item.ident.clone(), item);

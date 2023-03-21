@@ -46,7 +46,6 @@ pub(crate) fn run(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
     let import_vis = match vis {
         syn::Visibility::Inherited => quote_spanned!(vis.span() => pub(in super::super)),
         syn::Visibility::Public(_) => quote!(#vis),
-        syn::Visibility::Crate(_) => quote!(#vis),
         syn::Visibility::Restricted(restricted) => {
             match restricted.in_token {
                 None if restricted.path.is_ident("self") => {
@@ -122,7 +121,7 @@ impl ParseArgs for ItemArgs {
             _ = input.parse::<kw::import>()?;
             let inner;
             _ = parenthesized!(inner in input);
-            let imports = inner.parse_terminated::<_, syn::Token![,]>(syn::UseTree::parse)?;
+            let imports = inner.parse_terminated(syn::UseTree::parse, syn::Token![,])?;
             self.imports.extend(imports);
         } else if lh.peek(kw::auto_imports) {
             let key = input.parse::<kw::auto_imports>()?;

@@ -21,11 +21,11 @@ impl portrait_framework::Generate for Generator {
         ))
     }
 
-    fn generate_method(
+    fn generate_fn(
         &mut self,
         _ctx: portrait_framework::Context,
-        item: &syn::TraitItemMethod,
-    ) -> syn::Result<syn::ImplItemMethod> {
+        item: &syn::TraitItemFn,
+    ) -> syn::Result<syn::ImplItemFn> {
         let Arg { logger, args: prefix_args, .. } = &mut self.0;
 
         if !prefix_args.empty_or_trailing() {
@@ -45,7 +45,8 @@ impl portrait_framework::Generate for Generator {
 
             let mut arg_expr = quote!(#pat);
 
-            let cfg_attrs: Vec<_> = attrs.iter().filter(|attr| attr.path.is_ident("cfg")).collect();
+            let cfg_attrs: Vec<_> =
+                attrs.iter().filter(|attr| attr.path().is_ident("cfg")).collect();
             if !cfg_attrs.is_empty() {
                 let cfg_args = cfg_attrs
                     .iter()
@@ -63,8 +64,8 @@ impl portrait_framework::Generate for Generator {
 
         let fmt_string = format!("{}({})", &sig.ident, fmt_args.iter().map(|_| "{:?}").join(", "));
 
-        Ok(syn::ImplItemMethod {
-            attrs: item.attrs.iter().filter(|attr| attr.path.is_ident("cfg")).cloned().collect(),
+        Ok(syn::ImplItemFn {
+            attrs: item.attrs.iter().filter(|attr| attr.path().is_ident("cfg")).cloned().collect(),
             vis: syn::Visibility::Inherited,
             defaultness: None,
             sig,
@@ -91,7 +92,7 @@ impl portrait_framework::Generate for Generator {
         };
 
         Ok(syn::ImplItemType {
-            attrs: item.attrs.iter().filter(|attr| attr.path.is_ident("cfg")).cloned().collect(),
+            attrs: item.attrs.iter().filter(|attr| attr.path().is_ident("cfg")).cloned().collect(),
             vis: syn::Visibility::Inherited,
             defaultness: None,
             type_token: item.type_token,
