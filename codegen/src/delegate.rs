@@ -19,11 +19,12 @@ impl portrait_framework::Generate for Generator {
         let item_ident = &item.ident;
         let expr = syn::parse2(quote!(<#delegate_ty as #trait_path>::#item_ident)).unwrap();
         Ok(syn::ImplItemConst {
-            attrs: item.attrs.iter().filter(|attr| attr.path.is_ident("cfg")).cloned().collect(),
+            attrs: item.attrs.iter().filter(|attr| attr.path().is_ident("cfg")).cloned().collect(),
             vis: syn::Visibility::Inherited,
             defaultness: None,
             const_token: item.const_token,
             ident: item.ident.clone(),
+            generics: item.generics.clone(),
             colon_token: item.colon_token,
             ty: item.ty.clone(),
             eq_token: syn::Token![=](item.span()),
@@ -32,11 +33,11 @@ impl portrait_framework::Generate for Generator {
         })
     }
 
-    fn generate_method(
+    fn generate_fn(
         &mut self,
         ctx: portrait_framework::Context,
-        item: &syn::TraitItemMethod,
-    ) -> syn::Result<syn::ImplItemMethod> {
+        item: &syn::TraitItemFn,
+    ) -> syn::Result<syn::ImplItemFn> {
         let Arg { ty: delegate_ty, value: delegate_value } = &self.0;
         let trait_path = &ctx.impl_block.trait_.as_ref().expect("checked in framework").1;
 
@@ -55,7 +56,7 @@ impl portrait_framework::Generate for Generator {
                     let arg_attrs: Vec<_> = receiver
                         .attrs
                         .iter()
-                        .filter(|attr| attr.path.is_ident("cfg"))
+                        .filter(|attr| attr.path().is_ident("cfg"))
                         .cloned()
                         .collect();
                     let ref_ = if let Some((and, lifetime)) = &receiver.reference {
@@ -81,7 +82,7 @@ impl portrait_framework::Generate for Generator {
                     let arg_attrs: Vec<_> = typed
                         .attrs
                         .iter()
-                        .filter(|attr| attr.path.is_ident("cfg"))
+                        .filter(|attr| attr.path().is_ident("cfg"))
                         .cloned()
                         .collect();
                     if let syn::Pat::Ident(pat) = &*typed.pat {
@@ -111,15 +112,14 @@ impl portrait_framework::Generate for Generator {
             pound_token:   syn::Token![#](Span::call_site()),
             style:         syn::AttrStyle::Outer,
             bracket_token: syn::token::Bracket(Span::call_site()),
-            path:          syn::parse2(quote!(inline)).unwrap(),
-            tokens:        quote!(),
+            meta:          syn::Meta::Path(syn::parse2(quote!(inline)).unwrap()),
         };
 
-        Ok(syn::ImplItemMethod {
+        Ok(syn::ImplItemFn {
             attrs: item
                 .attrs
                 .iter()
-                .filter(|attr| attr.path.is_ident("cfg"))
+                .filter(|attr| attr.path().is_ident("cfg"))
                 .cloned()
                 .chain(iter::once(inline_attr))
                 .collect(),
@@ -156,7 +156,7 @@ impl portrait_framework::Generate for Generator {
         let ty = syn::parse2(quote!(<#delegate_ty as #trait_path>::#item_ident #generics_unbound))
             .unwrap();
         Ok(syn::ImplItemType {
-            attrs: item.attrs.iter().filter(|attr| attr.path.is_ident("cfg")).cloned().collect(),
+            attrs: item.attrs.iter().filter(|attr| attr.path().is_ident("cfg")).cloned().collect(),
             vis: syn::Visibility::Inherited,
             defaultness: None,
             type_token: item.type_token,

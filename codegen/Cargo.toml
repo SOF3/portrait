@@ -21,6 +21,6 @@ heck = "0.4.1"
 proc-macro2 = "1.0.50"
 quote = "1.0.23"
 rand = "0.8.5"
-syn = {version = "1.0.107", features = ["full", "visit"]}
+syn = {version = "2.0.4", features = ["full", "visit"]}
 portrait-framework = {version = "0.2.0", path = "../framework"}
 itertools = "0.10.5"
