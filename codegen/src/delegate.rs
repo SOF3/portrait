@@ -85,7 +85,7 @@ impl portrait_framework::Generate for Generator {
                         .filter(|attr| attr.path().is_ident("cfg"))
                         .cloned()
                         .collect();
-                    if let syn::Pat::Ident(pat) = &*typed.pat {
+                    if let syn::Pat::Ident(pat) = &mut *typed.pat {
                         if pat.ident == "self" {
                             // Note: this syntax only works if delegate_expr returns exactly the receiver type.
                             let delegate_expr = &delegate_value
@@ -99,7 +99,11 @@ impl portrait_framework::Generate for Generator {
                                 })?
                                 .expr;
                             return Ok(quote! { #(#arg_attrs)* #delegate_expr });
+                        } else {
+                            // Suppress `mut` when passing arguments.
+                            pat.mutability = None;
                         }
+
                     }
 
                     let pat = &typed.pat;
