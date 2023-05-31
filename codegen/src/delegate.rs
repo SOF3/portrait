@@ -59,8 +59,8 @@ impl portrait_framework::Generate for Generator {
                         .filter(|attr| attr.path().is_ident("cfg"))
                         .cloned()
                         .collect();
-                    let ref_ = if let Some((and, lifetime)) = &receiver.reference {
-                        Some(quote!(#and #lifetime))
+                    let ref_ = if let Some((and, _lifetime)) = &receiver.reference {
+                        Some(quote!(#and))
                     } else {
                         None
                     };
