@@ -103,7 +103,6 @@ impl portrait_framework::Generate for Generator {
                             // Suppress `mut` when passing arguments.
                             pat.mutability = None;
                         }
-
                     }
 
                     let pat = &typed.pat;
