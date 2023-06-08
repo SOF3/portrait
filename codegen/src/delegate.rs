@@ -59,6 +59,12 @@ impl portrait_framework::Generate for Generator {
                         .filter(|attr| attr.path().is_ident("cfg"))
                         .cloned()
                         .collect();
+                    let ref_ = if let Some((and, _lifetime)) = &receiver.reference {
+                        Some(quote!(#and))
+                    } else {
+                        None
+                    };
+                    let mut_ = receiver.mutability;
 
                     let delegate_expr = &delegate_value
                         .as_ref()
@@ -70,7 +76,11 @@ impl portrait_framework::Generate for Generator {
                         })?
                         .expr;
 
-                    Ok(quote! { #(#arg_attrs)* #delegate_expr })
+                    if quote!(#delegate_expr).to_string() == "self" {
+                        Ok(quote! { #(#arg_attrs)* #delegate_expr })
+                    } else {
+                        Ok(quote! { #(#arg_attrs)* #ref_ #mut_ #delegate_expr })
+                    }
                 }
                 syn::FnArg::Typed(typed) => {
                     let arg_attrs: Vec<_> = typed
