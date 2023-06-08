@@ -87,7 +87,7 @@ impl portrait_framework::Generate for Generator {
             Some((_, ty)) => (**ty).clone(),
             None => syn::Type::Tuple(syn::TypeTuple {
                 paren_token: syn::token::Paren(item.span()),
-                elems:       Punctuated::new(),
+                elems: Punctuated::new(),
             }),
         };
 
@@ -106,10 +106,10 @@ impl portrait_framework::Generate for Generator {
 }
 
 pub(crate) struct Arg {
-    logger:       syn::Path,
-    ret_ty:       Option<(syn::Token![->], Box<syn::Type>)>,
+    logger: syn::Path,
+    ret_ty: Option<(syn::Token![->], Box<syn::Type>)>,
     _comma_token: Option<syn::Token![,]>,
-    args:         Punctuated<syn::Expr, syn::Token![,]>,
+    args: Punctuated<syn::Expr, syn::Token![,]>,
 }
 
 impl Parse for Arg {

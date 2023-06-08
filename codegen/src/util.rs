@@ -7,7 +7,9 @@ use syn::Result;
 pub(crate) struct Once<T>(pub(crate) Option<(Span, T)>);
 
 impl<T> Default for Once<T> {
-    fn default() -> Self { Self(None) }
+    fn default() -> Self {
+        Self(None)
+    }
 }
 
 impl<T> Once<T> {
@@ -21,9 +23,13 @@ impl<T> Once<T> {
         Ok(())
     }
 
-    pub(crate) fn try_get(self) -> Option<T> { self.0.map(|(_, t)| t) }
+    pub(crate) fn try_get(self) -> Option<T> {
+        self.0.map(|(_, t)| t)
+    }
 
-    pub(crate) fn get_or(self, f: impl FnOnce() -> T) -> T { self.try_get().unwrap_or_else(f) }
+    pub(crate) fn get_or(self, f: impl FnOnce() -> T) -> T {
+        self.try_get().unwrap_or_else(f)
+    }
 }
 
 pub(crate) trait ParseArgs: Default {

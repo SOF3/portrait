@@ -94,9 +94,9 @@ pub(crate) fn run(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
 
 #[derive(Default)]
 struct ItemArgs {
-    debug_print:  Once<bool>,
-    name:         Once<syn::Ident>,
-    imports:      Vec<syn::UseTree>,
+    debug_print: Once<bool>,
+    name: Once<syn::Ident>,
+    imports: Vec<syn::UseTree>,
     auto_imports: Once<bool>,
 }
 

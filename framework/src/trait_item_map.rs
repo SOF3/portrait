@@ -119,7 +119,7 @@ pub struct Context<'t> {
     /// All known trait items in the portrait.
     pub all_trait_items: &'t [syn::TraitItem],
     /// The input impl block.
-    pub impl_block:      &'t syn::ItemImpl,
+    pub impl_block: &'t syn::ItemImpl,
 }
 
 /// Generates missing items.
@@ -158,9 +158,9 @@ pub struct TraitItemMap<'t> {
     /// Associated constants in the trait.
     pub consts: HashMap<syn::Ident, &'t syn::TraitItemConst>,
     /// Associated functions in the trait.
-    pub fns:    HashMap<syn::Ident, &'t syn::TraitItemFn>,
+    pub fns: HashMap<syn::Ident, &'t syn::TraitItemFn>,
     /// Associated types in the trait.
-    pub types:  HashMap<syn::Ident, &'t syn::TraitItemType>,
+    pub types: HashMap<syn::Ident, &'t syn::TraitItemType>,
 }
 
 impl<'t> TraitItemMap<'t> {
@@ -223,9 +223,9 @@ pub struct ImplItemMap<'t> {
     /// Associated constants in the implementation.
     pub consts: HashMap<syn::Ident, &'t syn::ImplItemConst>,
     /// Associated functions in the implementation.
-    pub fns:    HashMap<syn::Ident, &'t syn::ImplItemFn>,
+    pub fns: HashMap<syn::Ident, &'t syn::ImplItemFn>,
     /// Associated types in the implementation.
-    pub types:  HashMap<syn::Ident, &'t syn::ImplItemType>,
+    pub types: HashMap<syn::Ident, &'t syn::ImplItemType>,
 }
 
 impl<'t> ImplItemMap<'t> {

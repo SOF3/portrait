@@ -58,11 +58,11 @@ mod kw {
 }
 
 struct Attr {
-    debug_print:               bool,
+    debug_print: bool,
     debug_print_filler_output: bool,
-    mod_path:                  Option<syn::Path>,
-    attr_path:                 syn::Path,
-    args:                      Option<TokenStream>,
+    mod_path: Option<syn::Path>,
+    attr_path: syn::Path,
+    args: Option<TokenStream>,
 }
 
 impl Parse for Attr {

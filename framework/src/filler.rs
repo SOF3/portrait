@@ -42,9 +42,9 @@ mod kw {
 }
 
 pub(crate) struct Input<ArgsT> {
-    pub(crate) portrait:    Vec<syn::TraitItem>,
-    pub(crate) args:        ArgsT,
-    pub(crate) item_impl:   syn::ItemImpl,
+    pub(crate) portrait: Vec<syn::TraitItem>,
+    pub(crate) args: ArgsT,
+    pub(crate) item_impl: syn::ItemImpl,
     pub(crate) debug_print: bool,
 }
 
