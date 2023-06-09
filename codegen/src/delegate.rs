@@ -116,10 +116,10 @@ impl portrait_framework::Generate for Generator {
             .collect::<syn::Result<Vec<_>>>()?;
 
         let inline_attr = syn::Attribute {
-            pound_token: syn::Token![#](Span::call_site()),
-            style: syn::AttrStyle::Outer,
+            pound_token:   syn::Token![#](Span::call_site()),
+            style:         syn::AttrStyle::Outer,
             bracket_token: syn::token::Bracket(Span::call_site()),
-            meta: syn::Meta::Path(syn::parse2(quote!(inline)).unwrap()),
+            meta:          syn::Meta::Path(syn::parse2(quote!(inline)).unwrap()),
         };
 
         Ok(syn::ImplItemFn {
@@ -177,12 +177,12 @@ impl portrait_framework::Generate for Generator {
 }
 
 pub(crate) struct Arg {
-    ty: syn::Type,
+    ty:    syn::Type,
     value: Option<ArgValue>,
 }
 struct ArgValue {
     _semi_token: syn::Token![;],
-    expr: syn::Expr,
+    expr:        syn::Expr,
 }
 
 impl Parse for Arg {

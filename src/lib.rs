@@ -142,9 +142,7 @@ pub struct DummyDebug {
 }
 
 impl fmt::Debug for DummyDebug {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        f.write_str(self.text)
-    }
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { f.write_str(self.text) }
 }
 
 /// Generates a dummy implementation that returns [`Default::default()`]

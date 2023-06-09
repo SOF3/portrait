@@ -6,9 +6,7 @@ pub trait X {
 struct MyStruct {}
 
 impl X for MyStruct {
-    fn m(&mut self) {
-        println!("ok")
-    }
+    fn m(&mut self) { println!("ok") }
 }
 
 #[portrait::fill(portrait::delegate(T; self))]
