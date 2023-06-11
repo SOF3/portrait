@@ -3,7 +3,7 @@ members = [".", "codegen", "framework"]
 
 [package]
 name = "portrait"
-version = "0.2.2"
+version = "0.2.3"
 authors = ["SOFe <sofe2038@gmail.com>"]
 edition = "2021"
 license = "Apache-2.0"
