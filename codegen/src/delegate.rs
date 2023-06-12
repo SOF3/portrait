@@ -76,11 +76,7 @@ impl portrait_framework::Generate for Generator {
                         })?
                         .expr;
 
-                    if quote!(#delegate_expr).to_string() == "self" {
-                        Ok(quote! { #(#arg_attrs)* #delegate_expr })
-                    } else {
-                        Ok(quote! { #(#arg_attrs)* #ref_ #mut_ #delegate_expr })
-                    }
+                    Ok(quote! { #(#arg_attrs)* #ref_ #mut_ #delegate_expr })
                 }
                 syn::FnArg::Typed(typed) => {
                     let arg_attrs: Vec<_> = typed
