@@ -14,26 +14,26 @@ use crate::{derive_filler, FillDerive};
 /// ```
 /// # extern crate proc_macro;
 /// #
-/// portrait_framework::proc_macro_filler!(foo, Generator);
+/// portrait_framework::proc_macro_derive_filler!(foo, Generator);
 /// struct Generator(portrait_framework::NoArgs);
-/// impl portrait_framework::Generate for Generator {
+/// impl portrait_framework::GenerateDerive for Generator {
 ///     fn generate_const(
 ///         &mut self,
-///         context: portrait_framework::Context,
+///         context: portrait_framework::DeriveContext,
 ///         item: &syn::TraitItemConst,
 ///     ) -> syn::Result<syn::ImplItemConst> {
 ///         todo!()
 ///     }
 ///     fn generate_fn(
 ///         &mut self,
-///         context: portrait_framework::Context,
+///         context: portrait_framework::DeriveContext,
 ///         item: &syn::TraitItemFn,
 ///     ) -> syn::Result<syn::ImplItemFn> {
 ///         todo!()
 ///     }
 ///     fn generate_type(
 ///         &mut self,
-///         context: portrait_framework::Context,
+///         context: portrait_framework::DeriveContext,
 ///         item: &syn::TraitItemType,
 ///     ) -> syn::Result<syn::ImplItemType> {
 ///         todo!()
@@ -47,7 +47,7 @@ use crate::{derive_filler, FillDerive};
 macro_rules! proc_macro_derive_filler {
     ($ident:ident, $generator:path) => {
         pub fn $ident(input: ::proc_macro::TokenStream) -> ::proc_macro::TokenStream {
-            portrait_framework::completer_filler(input, $generator)
+            portrait_framework::completer_derive_filler(input, $generator)
         }
     };
 }
