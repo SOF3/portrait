@@ -12,9 +12,7 @@ jobs:
         with:
           toolchain: nightly
           profile: default
-      - run: |
-          shopt -o globstar
-          rustfmt +nightly ./**/*.rs --check
+      - run: git ls-files | grep -P '.*\.rs$' | xargs rustfmt +nightly --check
   lint:
     name: clippy lint
     runs-on: ubuntu-latest
