@@ -181,7 +181,10 @@ fn transform_enum(
     data: &syn::DataEnum,
 ) -> syn::Result<Vec<syn::Stmt>> {
     let Some(receiver) = item.sig.receiver() else {
-        return Err(syn::Error::new_spanned(&item.sig, "Cannot derive enum delegates for associated functions without receivers"));
+        return Err(syn::Error::new_spanned(
+            &item.sig,
+            "Cannot derive enum delegates for associated functions without receivers",
+        ));
     };
 
     let mut arms = Vec::new();
@@ -280,7 +283,10 @@ fn transform_return(
                 stack = reduce_base.clone();
             } else {
                 let Some((first, _, _)) = exprs_iter.next() else {
-                    return Err(syn::Error::new(Span::call_site(), "derive_delegate(reduce) is not applicable for empty structs"));
+                    return Err(syn::Error::new(
+                        Span::call_site(),
+                        "derive_delegate(reduce) is not applicable for empty structs",
+                    ));
                 };
                 stack = first;
             }
@@ -417,7 +423,10 @@ fn transform_arg(
             qself: None,
             path:  {
                 let syn::Pat::Ident(ident) = &*arg.pat else {
-                    return Err(syn::Error::new_spanned(&arg.pat, "Cannot derive delegate for traits with non-identifier-pattern parameters"));
+                    return Err(syn::Error::new_spanned(
+                        &arg.pat,
+                        "Cannot derive delegate for traits with non-identifier-pattern parameters",
+                    ));
                 };
                 ident.ident.clone().into()
             },
