@@ -4,6 +4,7 @@ use proc_macro2::{Span, TokenStream, TokenTree};
 use quote::ToTokens;
 use syn::parse::{Parse, ParseStream, Parser};
 use syn::Result;
+
 pub(crate) struct Once<T>(pub(crate) Option<(Span, T)>);
 
 impl<T> Default for Once<T> {
@@ -35,18 +36,24 @@ impl<T: ParseArgs> Parse for Args<T> {
     fn parse(input: ParseStream) -> Result<Self> {
         let mut args = T::default();
 
-        while !input.is_empty() {
-            args.parse_once(input)?;
-
-            if let Err(err) = input.parse::<syn::Token![,]>() {
-                if !input.is_empty() {
-                    return Err(err);
-                }
-            }
-        }
+        parse_args(input, &mut args)?;
 
         Ok(Self(args))
     }
+}
+
+fn parse_args(input: ParseStream, args: &mut impl ParseArgs) -> Result<()> {
+    while !input.is_empty() {
+        args.parse_once(input)?;
+
+        if let Err(err) = input.parse::<syn::Token![,]>() {
+            if !input.is_empty() {
+                return Err(err);
+            }
+        }
+    }
+
+    Ok(())
 }
 
 pub(crate) fn set_sig_arg_span(sig: &mut syn::Signature, span: Span) -> Result<()> {
@@ -82,4 +89,78 @@ fn copy_ts_with_span(ts: TokenStream, span: Span) -> TokenStream {
             tt
         })
         .collect()
+}
+
+pub(crate) fn parse_grouped_attr<T: ParseArgs>(
+    attrs: &[syn::Attribute],
+    group_name: &str,
+) -> Result<T> {
+    let mut args = T::default();
+
+    for attr in attrs {
+        if attr.path().is_ident("portrait") {
+            attr.parse_args_with(|input: ParseStream| {
+                loop {
+                    let ident = input.parse::<proc_macro2::Ident>()?;
+                    if ident == group_name {
+                        let inner;
+                        syn::parenthesized!(inner in input);
+
+                        parse_args(&inner, &mut args)?;
+                    } else {
+                        // skip group
+
+                        if input.peek(syn::Token![=]) {
+                            let _: syn::Token![=] = input.parse()?;
+                            let _: syn::Expr = input.parse()?;
+                        } else if input.peek(syn::token::Paren) {
+                            let _inner;
+                            syn::parenthesized!(_inner in input);
+                        }
+                    }
+
+                    if input.peek(syn::Token![,]) {
+                        let _: syn::Token![,] = input.parse()?;
+
+                        if input.is_empty() {
+                            break;
+                        }
+                    } else {
+                        if !input.is_empty() {
+                            return Err(input.error("trailing tokens"));
+                        }
+                        break;
+                    }
+                }
+
+                Ok(())
+            })?;
+        }
+    }
+
+    Ok(args)
+}
+
+pub(crate) struct StripAttrVisitor {
+    ident: &'static str,
+}
+impl syn::visit_mut::VisitMut for StripAttrVisitor {
+    fn visit_attribute_mut(&mut self, attr: &mut syn::Attribute) {
+        if attr.path().is_ident(self.ident) {
+            attr.meta = syn::parse_quote! {
+                cfg(all()) // universal quantification over empty set is always true
+            };
+        }
+    }
+}
+
+pub(crate) fn strip_attr<T: Clone>(
+    ident: &'static str,
+    item: &T,
+    visit_mut: fn(&mut StripAttrVisitor, &mut T),
+) -> T {
+    let mut item_stripped = item.clone();
+    let mut visitor = StripAttrVisitor { ident };
+    visit_mut(&mut visitor, &mut item_stripped);
+    item_stripped
 }

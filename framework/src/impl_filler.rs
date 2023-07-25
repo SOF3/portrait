@@ -2,9 +2,9 @@ use proc_macro2::TokenStream;
 use syn::parse::{Parse, ParseStream};
 use syn::Result;
 
-/// Determines how to fill the implementation of a trait.
-pub trait Fill {
-    /// The arguments passed to the completer through macros.
+/// Determines how to fill an `impl` block.
+pub trait FillImpl {
+    /// The arguments passed to the filler through macros.
     type Args: Parse;
 
     /// Completes the impl given a portrait of the trait items.
@@ -16,16 +16,16 @@ pub trait Fill {
     ) -> Result<TokenStream>;
 }
 
-/// Parses the macro input directly and passes them to the completer.
+/// Parses the macro input directly and passes them to the filler.
 ///
 /// Use this function if information of all implemented/unimplemented trait/impl items
 /// are required at the same time.
-/// If the completer just maps each unimplemented trait item to an impl item statelessly,
-/// use [`completer_filler2`](crate::completer_filler2)/[`proc_macro_filler`](crate::proc_macro_filler) instead.
-pub fn filler<FillerT: Fill>(input: TokenStream, completer: FillerT) -> Result<TokenStream> {
+/// If the filler just maps each unimplemented trait item to an impl item statelessly,
+/// use [`completer_impl_filler2`](crate::completer_impl_filler2)/[`proc_macro_impl_filler`](crate::proc_macro_impl_filler) for shorthand.
+pub fn impl_filler<FillerT: FillImpl>(input: TokenStream, filler: FillerT) -> Result<TokenStream> {
     let Input::<FillerT::Args> { portrait, args, item_impl, debug_print } = syn::parse2(input)?;
 
-    let output = completer.fill(&portrait, args, &item_impl)?;
+    let output = filler.fill(&portrait, args, &item_impl)?;
 
     if debug_print {
         println!("{output}");

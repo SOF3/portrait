@@ -8,16 +8,16 @@ use syn::spanned::Spanned;
 use crate::util::set_sig_arg_span;
 
 pub(crate) struct Generator(pub(crate) Arg);
-impl portrait_framework::Generate for Generator {
+impl portrait_framework::GenerateImpl for Generator {
     fn generate_const(
         &mut self,
-        ctx: portrait_framework::Context,
+        ctx: portrait_framework::ImplContext,
         item: &syn::TraitItemConst,
     ) -> syn::Result<syn::ImplItemConst> {
         let Arg { ty: delegate_ty, .. } = &self.0;
         let trait_path = &ctx.impl_block.trait_.as_ref().expect("checked in framework").1;
         let item_ident = &item.ident;
-        let expr = syn::parse2(quote!(<#delegate_ty as #trait_path>::#item_ident)).unwrap();
+        let expr = syn::parse_quote!(<#delegate_ty as #trait_path>::#item_ident);
         Ok(syn::ImplItemConst {
             attrs: item.attrs.iter().filter(|attr| attr.path().is_ident("cfg")).cloned().collect(),
             vis: syn::Visibility::Inherited,
@@ -35,7 +35,7 @@ impl portrait_framework::Generate for Generator {
 
     fn generate_fn(
         &mut self,
-        ctx: portrait_framework::Context,
+        ctx: portrait_framework::ImplContext,
         item: &syn::TraitItemFn,
     ) -> syn::Result<syn::ImplItemFn> {
         let Arg { ty: delegate_ty, value: delegate_value } = &self.0;
@@ -115,7 +115,7 @@ impl portrait_framework::Generate for Generator {
             pound_token:   syn::Token![#](Span::call_site()),
             style:         syn::AttrStyle::Outer,
             bracket_token: syn::token::Bracket(Span::call_site()),
-            meta:          syn::Meta::Path(syn::parse2(quote!(inline)).unwrap()),
+            meta:          syn::Meta::Path(syn::parse_quote!(inline)),
         };
 
         Ok(syn::ImplItemFn {
@@ -129,16 +129,15 @@ impl portrait_framework::Generate for Generator {
             vis: syn::Visibility::Inherited,
             defaultness: None,
             sig,
-            block: syn::parse2(quote! {{
+            block: syn::parse_quote! {{
                 <#delegate_ty as #trait_path>::#sig_ident(#(#args,)*)
-            }})
-            .unwrap(),
+            }},
         })
     }
 
     fn generate_type(
         &mut self,
-        ctx: portrait_framework::Context,
+        ctx: portrait_framework::ImplContext,
         item: &syn::TraitItemType,
     ) -> syn::Result<syn::ImplItemType> {
         let Arg { ty: delegate_ty, .. } = &self.0;
@@ -156,8 +155,7 @@ impl portrait_framework::Generate for Generator {
             .collect();
         let generics_unbound =
             (!generics_unbound.is_empty()).then(|| quote!(< #(#generics_unbound),* >));
-        let ty = syn::parse2(quote!(<#delegate_ty as #trait_path>::#item_ident #generics_unbound))
-            .unwrap();
+        let ty = syn::parse_quote!(<#delegate_ty as #trait_path>::#item_ident #generics_unbound);
         Ok(syn::ImplItemType {
             attrs: item.attrs.iter().filter(|attr| attr.path().is_ident("cfg")).cloned().collect(),
             vis: syn::Visibility::Inherited,

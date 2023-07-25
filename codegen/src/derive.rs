@@ -2,44 +2,44 @@ use heck::ToSnakeCase;
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 use syn::parse::{Parse, ParseStream};
-use syn::{Error, Result};
+use syn::Result;
+
+use crate::util;
 
 pub(crate) fn run(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
-    let Attr { debug_print, debug_print_filler_output, mod_path, attr_path, args: attr_args } =
-        syn::parse2(attr)?;
+    let Attr {
+        debug_print,
+        debug_print_filler_output,
+        mod_path,
+        trait_path,
+        attr_path,
+        args: attr_args,
+    } = syn::parse2(attr)?;
 
-    let item: syn::ItemImpl = syn::parse2(item)?;
-
-    let target = match &item.trait_ {
-        None => {
-            return Err(Error::new_spanned(
-                item.impl_token,
-                "#[fill] can only be used on trait impl blocks",
-            ))
-        }
-        Some((Some(bang), ..)) => {
-            return Err(Error::new_spanned(bang, "#[fill] cannot be used on negated trait impl"))
-        }
-        Some((None, trait_path, _)) => trait_path,
-    };
+    let item: syn::DeriveInput = syn::parse2(item)?;
 
     let mod_path = mod_path.unwrap_or_else(|| {
         // deduce the path to the portrait imports module based on the trait path
-        let mut mod_path = target.clone();
+        let mut mod_path = trait_path.clone();
         let mod_name = mod_path.segments.last_mut().expect("path segments should be nonempty");
         mod_name.ident = format_ident!("{}_portrait", mod_name.ident.to_string().to_snake_case());
         mod_name.arguments = syn::PathArguments::None;
         mod_path
     });
 
+    let item_stripped = util::strip_attr("portrait", &item, syn::visit_mut::visit_derive_input_mut);
+
     let output = quote! {
+        #item_stripped
+
         const _: () = {
             use #mod_path::imports::*;
 
-            #target! {
+            #trait_path! {
                 @TARGET {#attr_path}
+                @TRAIT_PATH {#trait_path}
                 @ARGS {#attr_args}
-                @IMPL {#item}
+                @INPUT {#item}
                 @DEBUG_PRINT_FILLER_OUTPUT {#debug_print_filler_output}
             }
         };
@@ -56,12 +56,14 @@ mod kw {
     syn::custom_keyword!(MOD_PATH);
     syn::custom_keyword!(__DEBUG_PRINT);
     syn::custom_keyword!(DEBUG_PRINT_FILLER_OUTPUT);
+    syn::custom_keyword!(with);
 }
 
 struct Attr {
     debug_print:               bool,
     debug_print_filler_output: bool,
     mod_path:                  Option<syn::Path>,
+    trait_path:                syn::Path,
     attr_path:                 syn::Path,
     args:                      Option<TokenStream>,
 }
@@ -95,7 +97,9 @@ impl Parse for Attr {
             }
         }
 
-        let path = input.parse()?;
+        let trait_path = input.parse()?;
+        let _for_token: kw::with = input.parse()?;
+        let attr_path = input.parse()?;
 
         let mut args = None;
         if !input.is_empty() {
@@ -104,6 +108,6 @@ impl Parse for Attr {
             args = Some(inner.parse()?);
         }
 
-        Ok(Self { debug_print, debug_print_filler_output, mod_path, attr_path: path, args })
+        Ok(Self { debug_print, debug_print_filler_output, mod_path, trait_path, attr_path, args })
     }
 }

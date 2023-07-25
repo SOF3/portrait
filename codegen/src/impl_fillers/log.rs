@@ -9,10 +9,10 @@ use syn::{Error, Result};
 use crate::util::set_sig_arg_span;
 
 pub(crate) struct Generator(pub(crate) Arg);
-impl portrait_framework::Generate for Generator {
+impl portrait_framework::GenerateImpl for Generator {
     fn generate_const(
         &mut self,
-        _ctx: portrait_framework::Context,
+        _ctx: portrait_framework::ImplContext,
         item: &syn::TraitItemConst,
     ) -> syn::Result<syn::ImplItemConst> {
         Err(Error::new_spanned(
@@ -23,7 +23,7 @@ impl portrait_framework::Generate for Generator {
 
     fn generate_fn(
         &mut self,
-        _ctx: portrait_framework::Context,
+        _ctx: portrait_framework::ImplContext,
         item: &syn::TraitItemFn,
     ) -> syn::Result<syn::ImplItemFn> {
         let Arg { logger, args: prefix_args, .. } = &mut self.0;
@@ -69,16 +69,15 @@ impl portrait_framework::Generate for Generator {
             vis: syn::Visibility::Inherited,
             defaultness: None,
             sig,
-            block: syn::parse2(quote! {{
+            block: syn::parse_quote! {{
                 #logger!(#prefix_args #fmt_string, #(#fmt_args),*)
-            }})
-            .unwrap(),
+            }},
         })
     }
 
     fn generate_type(
         &mut self,
-        _ctx: portrait_framework::Context,
+        _ctx: portrait_framework::ImplContext,
         item: &syn::TraitItemType,
     ) -> syn::Result<syn::ImplItemType> {
         let Arg { ret_ty, .. } = &self.0;

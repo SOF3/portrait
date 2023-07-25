@@ -145,6 +145,7 @@ impl fmt::Debug for DummyDebug {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { f.write_str(self.text) }
 }
 
+/// **Impl filler**:
 /// Generates a dummy implementation that returns [`Default::default()`]
 /// in all associated constants and functions.
 ///
@@ -177,6 +178,7 @@ pub use portrait_codegen::default;
 //
 
 //
+/// **Impl filler**:
 /// Generates an implementation that delegates
 /// to another implementation of the same trait.
 ///
@@ -244,6 +246,122 @@ pub use portrait_codegen::delegate;
 //
 
 //
+/// Invokes a portrait derive macro on the applied type.
+///
+/// # Usage
+/// ```
+/// # /*
+/// #[portrait::derive(@OPTION1(...) @OPTION2 path::to::Trait with path::to::derive_filler(...))]
+/// struct Foo {
+///     // ...
+/// }
+/// # */
+/// ```
+///
+/// The `(...)` parts are optional arguments passed for the option or the filler.
+/// If the option/filler does not expect any arguments, the entire parentheses may be omitted.
+///
+/// ## Special options
+///
+/// ### `DEBUG_PRINT_FILLER_OUTPUT`
+/// > Syntax: `@DEBUG_PRINT_FILLER_OUTPUT`
+///
+/// Prints the output of the filler macro, used for filler macro developers to debug their code.
+///
+/// ### `MOD_PATH`
+/// > Syntax: `@MOD_PATH(path::to::name)`
+///
+/// Specifies the derived module path if it is imported differently
+/// or overridden with `name` in [`#[make]`](make).
+#[doc(inline)]
+pub use portrait_codegen::derive;
+//
+
+//
+/// **Derive filler**:
+/// Delegate functions to each of the fields in the struct.
+///
+/// # Semantics
+/// Trait functions are implemented by calling the same function on each struct field
+/// in the order specified in the struct definition.
+///
+/// ## Parameters
+/// Parameters are passed as-is into each field delegation call.
+/// Hence, all parameters must implement [`Copy`] or be a reference.
+///
+/// If the parameter type is `Self`/`&Self`/`&mut Self`,
+/// the corresponding field is passed to the delegation call instead.
+///
+/// ## Return values
+/// If the return type is `()`, no return values are involved.
+///
+/// If the return type is `Self`, a new `Self` is constructed,
+/// with each field as the result of the delegation call for that field.
+///
+/// For all other return types, the function should use the attribute
+///
+/// ```
+/// # /*
+/// #[portrait(derive_delegate(reduce = reduce_fn))]
+/// # */
+/// ```
+///
+/// `reduce_fn(a, b)` is called to reduce the return value of every two fields to the output.
+/// `reduce_fn` may be a generic function that yields different inputs and outputs,
+/// provided that the final reduction call returns the type requested by the trait.
+///
+/// # Example
+/// ```
+/// #[portrait::make]
+/// trait Foo {
+///     fn new(arg1: i32, arg2: &str, arg3: &mut i64) -> Self;
+///     fn print(&self);
+///     fn clone(&self) -> Self;
+///     #[portrait(derive_delegate(reduce = |a, b| a && b))]
+///     fn eq(&self, other: &Self) -> bool;
+/// }
+///
+/// # #[portrait::fill(portrait::default)]
+/// impl Foo for i32 {}
+/// # #[portrait::fill(portrait::default)]
+/// impl Foo for String {}
+///
+/// #[portrait::derive(Foo with portrait::derive_delegate)]
+/// struct Fields {
+///     a: i32,
+///     b: String,
+/// }
+/// ```
+///
+/// Enums are also supported with a few restrictions:
+///
+/// - All associated functions must have a receiver.
+/// - Non-receiver parameters must not take a `Self`-based type.
+///
+/// ```
+/// #[portrait::make]
+/// trait Foo {
+///     fn print(&self);
+///     fn clone(&self) -> Self;
+/// }
+///
+/// # #[portrait::fill(portrait::default)]
+/// impl Foo for i32 {}
+/// # #[portrait::fill(portrait::default)]
+/// impl Foo for String {}
+///
+/// #[portrait::derive(Foo with portrait::derive_delegate)]
+/// enum Variants {
+///     Foo { a: i32, b: String },
+///     Bar(i32, String),
+/// }
+/// ```
+#[doc(inline)]
+#[cfg(feature = "derive-delegate-filler")]
+pub use portrait_codegen::derive_delegate;
+//
+
+//
 /// Invokes a portrait macro on the applied impl block.
 ///
 /// # Usage
@@ -261,9 +379,14 @@ pub use portrait_codegen::delegate;
 ///
 /// ```
 /// # /*
-/// #[portrait::fill(@OPTION1(...) @OPTION2 path::to::filler)]
+/// #[portrait::fill(@OPTION1(...) @OPTION2 path::to::filler(...))]
 /// # */
 /// ```
+///
+/// The `(...)` parts are optional arguments passed for the option or the filler.
+/// If the option/filler does not expect any arguments, the entire parentheses may be omitted.
+///
+/// ## Special options
 ///
 /// ### `DEBUG_PRINT_FILLER_OUTPUT`
 /// > Syntax: `@DEBUG_PRINT_FILLER_OUTPUT`
@@ -274,12 +397,13 @@ pub use portrait_codegen::delegate;
 /// > Syntax: `@MOD_PATH(path::to::name)`
 ///
 /// Specifies the derived module path if it is imported differently
-/// or overridden with `name` in [`#[make]`].
+/// or overridden with `name` in [`#[make]`](make).
 #[doc(inline)]
 pub use portrait_codegen::fill;
 //
 
 //
+/// **Impl filler**:
 /// Generates an implementation that simply logs the parameters and returns `()`.
 ///
 /// # Syntax

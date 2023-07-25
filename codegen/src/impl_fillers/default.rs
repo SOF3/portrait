@@ -4,10 +4,10 @@ use syn::spanned::Spanned;
 use syn::{Error, Result};
 
 pub(crate) struct Generator(pub(crate) portrait_framework::NoArgs);
-impl portrait_framework::Generate for Generator {
+impl portrait_framework::GenerateImpl for Generator {
     fn generate_const(
         &mut self,
-        _: portrait_framework::Context,
+        _: portrait_framework::ImplContext,
         item: &syn::TraitItemConst,
     ) -> Result<syn::ImplItemConst> {
         Ok(syn::ImplItemConst {
@@ -25,14 +25,14 @@ impl portrait_framework::Generate for Generator {
             colon_token: item.colon_token,
             ty:          item.ty.clone(),
             eq_token:    syn::Token![=](item.span()),
-            expr:        syn::parse2(quote!(Default::default())).unwrap(),
+            expr:        syn::parse_quote!(Default::default()),
             semi_token:  item.semi_token,
         })
     }
 
     fn generate_fn(
         &mut self,
-        _: portrait_framework::Context,
+        _: portrait_framework::ImplContext,
         item: &syn::TraitItemFn,
     ) -> Result<syn::ImplItemFn> {
         Ok(syn::ImplItemFn {
@@ -45,16 +45,15 @@ impl portrait_framework::Generate for Generator {
             vis:         syn::Visibility::Inherited,
             defaultness: None,
             sig:         unuse_sig(item.sig.clone()),
-            block:       syn::parse2(quote! {
+            block:       syn::parse_quote! {
                 { Default::default() }
-            })
-            .unwrap(),
+            },
         })
     }
 
     fn generate_type(
         &mut self,
-        _: portrait_framework::Context,
+        _: portrait_framework::ImplContext,
         item: &syn::TraitItemType,
     ) -> Result<syn::ImplItemType> {
         Err(Error::new_spanned(
@@ -72,7 +71,7 @@ fn unuse_sig(mut sig: syn::Signature) -> syn::Signature {
                 style:         syn::AttrStyle::Outer,
                 bracket_token: syn::token::Bracket(Span::call_site()),
                 meta:          syn::Meta::List(syn::MetaList {
-                    path:      syn::parse2(quote!(allow)).unwrap(),
+                    path:      syn::parse_quote!(allow),
                     delimiter: syn::MacroDelimiter::Paren(syn::token::Paren(typed.span())),
                     tokens:    quote!(unused_variables),
                 }),

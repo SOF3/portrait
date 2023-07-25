@@ -12,7 +12,9 @@ jobs:
         with:
           toolchain: nightly
           profile: default
-      - run: cargo +nightly fmt --all -- --check
+      - run: |
+          shopt -o globstar
+          rustfmt +nightly ./**/*.rs --check
   lint:
     name: clippy lint
     runs-on: ubuntu-latest

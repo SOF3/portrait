@@ -14,26 +14,37 @@ pub fn fill(attr: TokenStream, item: TokenStream) -> TokenStream {
     fill::run(attr.into(), item.into()).unwrap_or_else(|err| err.into_compile_error()).into()
 }
 
-#[cfg(feature = "default-filler")]
-mod default;
-#[cfg(feature = "default-filler")]
-#[proc_macro]
-pub fn default(input: TokenStream) -> TokenStream {
-    portrait_framework::completer_filler(input, default::Generator)
+mod derive;
+#[proc_macro_attribute]
+pub fn derive(attr: TokenStream, item: TokenStream) -> TokenStream {
+    derive::run(attr.into(), item.into()).unwrap_or_else(|err| err.into_compile_error()).into()
 }
 
-#[cfg(feature = "delegate-filler")]
-mod delegate;
-#[cfg(feature = "delegate-filler")]
-#[proc_macro]
-pub fn delegate(input: TokenStream) -> TokenStream {
-    portrait_framework::completer_filler(input, delegate::Generator)
+macro_rules! fillers {
+    ($dir:ident $completer_filler:ident: $($names:ident = $feature:literal,)*) => {
+        mod $dir {
+            $(
+                #[cfg(feature = $feature)]
+                pub(super) mod $names;
+            )*
+        }
+
+        $(
+            #[cfg(feature = $feature)]
+            #[proc_macro]
+            pub fn $names(input: TokenStream) -> TokenStream {
+                portrait_framework::$completer_filler(input, $dir::$names::Generator)
+            }
+        )*
+    }
 }
 
-#[cfg(feature = "log-filler")]
-mod log;
-#[cfg(feature = "log-filler")]
-#[proc_macro]
-pub fn log(input: TokenStream) -> TokenStream {
-    portrait_framework::completer_filler(input, log::Generator)
+fillers! { derive_fillers completer_derive_filler:
+    derive_delegate = "derive-delegate-filler",
+}
+
+fillers! { impl_fillers completer_impl_filler:
+    default = "default-filler",
+    delegate = "delegate-filler",
+    log = "log-filler",
 }

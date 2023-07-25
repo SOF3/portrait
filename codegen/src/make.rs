@@ -61,17 +61,24 @@ pub(crate) fn run(attr: TokenStream, item: TokenStream) -> Result<TokenStream> {
         }
     };
 
+    let item_stripped = util::strip_attr("portrait", &item, syn::visit_mut::visit_item_trait_mut);
+
     let output = quote! {
-        #item
+        #item_stripped
 
         #pub_export
         macro_rules! #macro_random_name {
-            (@TARGET {$target_macro:path} @ARGS {$($args:tt)*} @IMPL {$($impl:tt)*} @DEBUG_PRINT_FILLER_OUTPUT {$debug_print:literal}) => {
+            (
+                @TARGET {$target_macro:path}
+                $(
+                    @$arg_key:ident { $($arg_value:tt)* }
+                )*
+            ) => {
                 $target_macro! {
                     TRAIT_PORTRAIT { #({#unstripped_trait_items})* }
-                    ARGS { $($args)* }
-                    IMPL { $($impl)* }
-                    DEBUG_PRINT_FILLER_OUTPUT { $debug_print }
+                    $(
+                        $arg_key { $($arg_value)* }
+                    )*
                 }
             }
         }
