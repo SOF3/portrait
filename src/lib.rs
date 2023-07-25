@@ -310,6 +310,48 @@ pub use portrait_codegen::derive;
 /// `reduce_fn` may be a generic function that yields different inputs and outputs,
 /// provided that the final reduction call returns the type requested by the trait.
 ///
+/// # Options
+/// The `#[portrait(derive_delegate(...))]` attribute can be applied on associated functions
+/// to configure the derived delegation for the function.
+///
+/// ## `try`
+/// If the `try` option is applied, the return type must be in the form `R<T, ...>`,
+/// e.g. `Result<T, Error>`, `Option<T>`, etc., where the type implements [`Try`](std::ops::Try).
+/// Each delegation gets an `?` operator to return the error branch,
+/// and the result is wrapped by an `Ok(...)` call.
+/// `Ok` can be overridden by providing a value to the `try` option, e.g.
+///
+/// ```
+/// # /*
+/// #[portrait(derive_delegate(try = Some))]
+/// fn take(&self) -> Option<i32>;
+/// # */
+/// ```
+///
+/// ## `reduce`, `reduce_base`
+/// If the `reduce` option is applied,
+/// the return values of delegation calls are combined by the reducer.
+/// The option requires a value that resolves to
+/// a function that accepts two parameters and returns a value.
+/// The type of the reducer is not fixed;
+/// the types of parameters and return values are resolved separately.
+///
+/// If a `reduce_base` is supplied, the reducer starts with the base expression.
+/// Otherwise, it starts with the first two values.
+/// Example use cases include:
+///
+/// ```
+/// # /*
+/// /// Returns the logical conjunction of all fields.
+/// #[portrait(derive_delegate(reduce = |a, b| a && b))]
+/// fn all(&self) -> bool;
+///
+/// /// Returns the sum of all field counts plus one.
+/// #[portrait(derive_delegate(reduce = |a, b| a + b, reduce_base = 1))]
+/// fn count(&self) -> usize;
+/// # */
+/// ```
+///
 /// # Example
 /// ```
 /// #[portrait::make]
