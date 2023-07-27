@@ -110,6 +110,51 @@ impl GenerateDerive for Generator {
     ) -> syn::Result<syn::ImplItemType> {
         Err(syn::Error::new_spanned(item, "derive_delegate does not support type items"))
     }
+
+    fn extend_generics(
+        &mut self,
+        DeriveContext { trait_path, input, .. }: DeriveContext,
+        _generics_params: &mut Vec<syn::GenericParam>,
+        generics_where: &mut Vec<syn::WherePredicate>,
+    ) -> syn::Result<()> {
+        fn add_generic_predicate(
+            generics_where: &mut Vec<syn::WherePredicate>,
+            trait_path: &syn::Path,
+            field: &syn::Field,
+        ) {
+            generics_where.push(syn::WherePredicate::Type(syn::PredicateType {
+                lifetimes:   None,
+                bounded_ty:  field.ty.clone(),
+                colon_token: syn::Token![:](field.span()),
+                bounds:      [syn::TypeParamBound::Trait(syn::TraitBound {
+                    paren_token: None,
+                    modifier:    syn::TraitBoundModifier::None,
+                    lifetimes:   None,
+                    path:        trait_path.clone(),
+                })]
+                .into_iter()
+                .collect(),
+            }));
+        }
+
+        match &input.data {
+            syn::Data::Struct(data) => {
+                for field in &data.fields {
+                    add_generic_predicate(generics_where, trait_path, field);
+                }
+            }
+            syn::Data::Enum(data) => {
+                for variant in &data.variants {
+                    for field in &variant.fields {
+                        add_generic_predicate(generics_where, trait_path, field);
+                    }
+                }
+            }
+            _ => {}
+        }
+
+        Ok(())
+    }
 }
 
 fn transform_struct(

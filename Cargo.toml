@@ -24,3 +24,4 @@ portrait-codegen = {version = "0.3.0", path = "./codegen"}
 
 [dev-dependencies]
 log = "0.4.17"
+static_assertions = "1.1.0"

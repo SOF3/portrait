@@ -398,6 +398,28 @@ pub use portrait_codegen::derive;
 ///     Bar(i32, String),
 /// }
 /// ```
+///
+/// Traits are implemented for generic types as long as the implementation is feasible,
+/// unlike the standard macros that implement on the generic variables directly.
+///
+/// ```
+/// #[portrait::make]
+/// trait Create {
+///     fn create() -> Self;
+/// }
+///
+/// impl<T> Create for Vec<T> {
+///     fn create() -> Self { vec![] }
+/// }
+///
+/// #[portrait::derive(Create with portrait::derive_delegate)]
+/// struct Fields<T> {
+///     v: Vec<T>,
+/// }
+///
+/// static_assertions::assert_impl_all!(Fields<i32>: Create);
+/// static_assertions::assert_not_impl_any!(i32: Create);
+/// ```
 #[doc(inline)]
 #[cfg(feature = "derive-delegate-filler")]
 pub use portrait_codegen::derive_delegate;

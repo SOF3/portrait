@@ -208,8 +208,8 @@ pub trait GenerateDerive {
     fn extend_generics(
         &mut self,
         _ctx: DeriveContext,
-        _generics_params: &mut [syn::GenericParam],
-        _generics_where: &mut [syn::WherePredicate],
+        _generics_params: &mut Vec<syn::GenericParam>,
+        _generics_where: &mut Vec<syn::WherePredicate>,
     ) -> Result<()> {
         Ok(())
     }
