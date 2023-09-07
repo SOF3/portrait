@@ -74,7 +74,7 @@ in the same module as the `FooBar` trait.
 - `delegate`:
   Proxies each missing method, constant and type
   to an expression (usually `self.field`) or another type implementing the same trait.
-- `lo`]:
+- `lo`:
   Calls a `format!`-like macro with the method arguments.
 
 ## How this works
