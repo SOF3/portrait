@@ -132,7 +132,9 @@
 //!
 //!   [macro_rules_attribute]: https://docs.rs/macro_rules_attribute/
 
-use std::fmt;
+#![no_std]
+
+use core::fmt;
 
 /// Placeholder values when a [cfg](attr@cfg)-disabled parameter is used in [`log`].
 #[doc(hidden)]
