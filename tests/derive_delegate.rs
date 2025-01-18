@@ -8,7 +8,7 @@ trait Foo {
 }
 
 #[portrait::fill(portrait::default)]
-impl Foo for i32 { }
+impl Foo for i32 {}
 
 #[portrait::fill(portrait::default)]
 impl Foo for String {}

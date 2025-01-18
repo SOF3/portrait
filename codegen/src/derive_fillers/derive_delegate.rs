@@ -318,14 +318,17 @@ fn transform_return(
 ) -> syn::Result<Vec<syn::Stmt>> {
     let exprs = transform_arg_fields(item, fn_args, trait_path, fields, ctor_path, is_refutable)?;
 
+    let exprs = match exprs.try_into() {
+        Ok::<[_; 1], _>([(single, _, _)]) => return Ok(vec![syn::Stmt::Expr(single, None)]),
+        Err(err) => err,
+    };
+
     Ok(match (&fn_args.reduce.0, output_ty) {
         (Some((_, reduce_fn)), _) => {
             let mut exprs_iter = exprs.into_iter();
 
-            let mut stack;
-
-            if let Some((_, reduce_base)) = &fn_args.reduce_base.0 {
-                stack = reduce_base.clone();
+            let mut stack = if let Some((_, reduce_base)) = &fn_args.reduce_base.0 {
+                reduce_base.clone()
             } else {
                 let Some((first, _, _)) = exprs_iter.next() else {
                     return Err(syn::Error::new(
@@ -333,8 +336,8 @@ fn transform_return(
                         "derive_delegate(reduce) is not applicable for empty structs",
                     ));
                 };
-                stack = first;
-            }
+                first
+            };
 
             for (expr, _, field) in exprs_iter {
                 stack = syn::parse_quote_spanned! { field.span() =>
@@ -383,9 +386,9 @@ fn transform_return(
             return Err(syn::Error::new_spanned(
                 output_ty,
                 "Cannot determine how to aggregate the return value. Supported return types are \
-                 `()`, `Self` or arbitrary types with the `#[portrait(derive_delegate(reduce = \
-                 _))]` attribute, or `Option<>`/`Result<>` wrapping them with \
-                 `#[portrait(derive_delegate(with_try))]`.",
+                    `()`, `Self` or arbitrary types with the `#[portrait(derive_delegate(reduce = \
+                    _))]` attribute, or `Option<>`/`Result<>` wrapping them with \
+                    `#[portrait(derive_delegate(with_try))]`.",
             ))
         }
     })
