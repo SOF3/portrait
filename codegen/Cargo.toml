@@ -1,6 +1,6 @@
 [package]
 name = "portrait-codegen"
-version = "0.3.0"
+version = "0.3.1"
 authors = ["SOFe <sofe2038@gmail.com>"]
 edition = "2021"
 license = "Apache-2.0"
@@ -24,4 +24,4 @@ quote = "1.0.23"
 rand = "0.8.5"
 itertools = "0.12.1"
 syn = {version = "2.0.4", features = ["full", "visit", "visit-mut"]}
-portrait-framework = {version = "0.3.0", path = "../framework"}
+portrait-framework = {version = "0.3.1", path = "../framework"}

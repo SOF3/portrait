@@ -1,6 +1,8 @@
+use std::mem;
+
 use portrait_framework::{DeriveContext, GenerateDerive, NoArgs};
 use proc_macro2::Span;
-use syn::{punctuated::Punctuated, spanned::Spanned};
+use syn::spanned::Spanned;
 
 use crate::util;
 
@@ -70,7 +72,7 @@ impl GenerateDerive for Generator {
 
             let old_stmt_block = syn::Block {
                 brace_token: syn::token::Brace(with_try_span),
-                stmts:       stmts.drain(..).collect(),
+                stmts:       mem::take(&mut stmts),
             };
 
             let wrapped_stmt = syn::Expr::Call(syn::ExprCall {

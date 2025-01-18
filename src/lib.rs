@@ -7,11 +7,11 @@
 //! However they come with some limitations:
 //!
 //! - There is no reasonable way to implement an associated function
-//! if its return type is an associated type.
+//!   if its return type is an associated type.
 //! - If a trait contains many highly similar associated functions,
-//! writing the defaults involves a lot of boilerplate.
-//! But users can only provide one default implementation for each method
-//! through procedural macros.
+//!   writing the defaults involves a lot of boilerplate.
+//!   But users can only provide one default implementation for each method
+//!   through procedural macros.
 //!
 //! With `portrait`, the default implementations are provided
 //! at `impl`-level granularity instead of trait-level.
