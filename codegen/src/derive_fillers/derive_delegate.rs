@@ -1,6 +1,6 @@
 use portrait_framework::{DeriveContext, GenerateDerive, NoArgs};
 use proc_macro2::Span;
-use syn::spanned::Spanned;
+use syn::{punctuated::Punctuated, spanned::Spanned};
 
 use crate::util;
 
@@ -233,7 +233,7 @@ fn transform_enum(
     };
 
     let mut arms = Vec::new();
-    for variant in &data.variants {
+    for (index, variant) in data.variants.iter().enumerate() {
         let variant_ident = &variant.ident;
         let arm_stmts = transform_return(
             item,
@@ -244,6 +244,45 @@ fn transform_enum(
             &syn::parse_quote!(Self::#variant_ident),
             true,
         )?;
+
+        let mut block = syn::Expr::Block(syn::ExprBlock {
+                attrs: Vec::new(),
+                label: None,
+                block: syn::Block {
+                    brace_token: syn::token::Brace(variant.span()),
+                    stmts:       arm_stmts,
+                },
+            });
+
+        if let Some((_, either)) = &fn_args.enum_either.0 {
+            if index + 1 == data.variants.len() {
+                // if variants.len() == 4, 3 => Right(Right(Right))
+                for _ in 0..index {
+                    block = syn::Expr::Call(syn::ExprCall {
+                        attrs: Vec::new(),
+                        func: Box::new(either_right(either.as_ref())),
+                        args: [block].into_iter().collect(),
+                        paren_token: either_paren(either.as_ref()),
+                    });
+                }
+            } else {
+                // 0 => Left, 1 => Right(Left), 2 => Right(Right(Left)), ...
+                block = syn::Expr::Call(syn::ExprCall {
+                    attrs: Vec::new(),
+                    func: Box::new(either_left(either.as_ref())),
+                    args: [block].into_iter().collect(),
+                    paren_token: either_paren(either.as_ref()),
+                });
+                for _ in 0..index {
+                    block = syn::Expr::Call(syn::ExprCall {
+                        attrs: Vec::new(),
+                        func: Box::new(either_right(either.as_ref())),
+                        args: [block].into_iter().collect(),
+                        paren_token: either_paren(either.as_ref()),
+                    });
+                }
+            }
+        }
 
         let fields = variant
             .fields
@@ -282,14 +321,7 @@ fn transform_enum(
             }),
             guard:           None,
             fat_arrow_token: syn::Token![=>](variant.span()),
-            body:            Box::new(syn::Expr::Block(syn::ExprBlock {
-                attrs: Vec::new(),
-                label: None,
-                block: syn::Block {
-                    brace_token: syn::token::Brace(variant.span()),
-                    stmts:       arm_stmts,
-                },
-            })),
+            body:            Box::new(block),
             comma:           Some(syn::Token![,](variant.span())),
         })
     }
@@ -494,6 +526,7 @@ fn is_self_ty(ty: &syn::Type) -> bool {
 mod kw {
     syn::custom_keyword!(reduce);
     syn::custom_keyword!(reduce_base);
+    syn::custom_keyword!(enum_either);
 }
 
 #[derive(Default)]
@@ -501,6 +534,7 @@ struct FnArgs {
     reduce:      util::Once<syn::Expr>,
     reduce_base: util::Once<syn::Expr>,
     with_try:    util::Once<Option<syn::Expr>>,
+    enum_either: util::Once<Option<EnumEither>>,
 }
 
 impl util::ParseArgs for FnArgs {
@@ -526,10 +560,49 @@ impl util::ParseArgs for FnArgs {
             };
 
             self.with_try.set(ok_expr, key.span())?;
-        } else {
+        } else if lh.peek(kw::enum_either) {
+            let key: kw::enum_either = input.parse()?;
+            let value = input.peek(syn::Token![=]).then( ||{
+                let _: syn::Token![=] = input.parse()?;
+
+                let inner;
+                let paren = syn::parenthesized!(inner in input);
+
+                Ok(EnumEither { paren, left: inner.parse()?, _comma: inner.parse()?, right: inner.parse()? })
+            }).transpose()?;
+            self.enum_either.set(value, key.span())?;
+        }else {
             return Err(lh.error());
         }
         Ok(())
+    }
+}
+
+struct EnumEither {
+    paren: syn::token::Paren,
+    left: syn::Expr,
+    _comma: syn::Token![,],
+    right: syn::Expr,
+}
+
+fn either_left(option: Option<&EnumEither>) -> syn::Expr {
+    match option {
+        Some(either) => either.left.clone(),
+        None => syn::parse_quote! { Either::Left },
+    }
+}
+
+fn either_right(option: Option<&EnumEither>) -> syn::Expr {
+    match option {
+        Some(either) => either.right.clone(),
+        None => syn::parse_quote! { Either::Right },
+    }
+}
+
+fn either_paren(option: Option<&EnumEither>) -> syn::token::Paren {
+    match option {
+        Some(either) => either.paren,
+        None => syn::token::Paren::default(),
     }
 }
 

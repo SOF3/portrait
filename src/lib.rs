@@ -354,6 +354,34 @@ pub use portrait_codegen::derive;
 /// # */
 /// ```
 ///
+/// ## `either`
+/// If the `either` option is applied, when deriving from enums,
+/// each match arm is wrapped with a nested tree of `Either::Left(..)`/`Either::Right(..)`s
+/// such that each arm bijects to a unique variant of some `Either<Either<Either<..>>>`.
+/// This is useful for delegating to separate enum implementations
+/// when the return type is opaque (e.g. return-impl-trait).
+///
+/// ```
+/// # /*
+/// #[portrait(derive_delegate(enum_either))]
+/// fn iter(&self) -> impl Iterator<Item = Xxx>;
+/// # */
+/// ```
+///
+/// Note that portrait only knows how to implement the trait with this associated function,
+/// but does not derive anything for the trait bound `Trait` in `-> impl Trait`.
+/// In particular, this means that someone has to have implemented `Trait` for `Either<A, B>`.
+///
+/// For traits not implemented by `Either` by default, an alternative wrapper could be used
+/// by specifying the "left" and "right" operands in the attribute:
+///
+/// ```
+/// # /*
+/// #[portrait(derive_delegate(enum_either = left_wrapper, right_wrapper))]
+/// fn as_trait(&self) -> impl Trait;
+/// # */
+/// ```
+///
 /// # Example
 /// ```
 /// #[portrait::make]
@@ -381,7 +409,6 @@ pub use portrait_codegen::derive;
 ///
 /// - All associated functions must have a receiver.
 /// - Non-receiver parameters must not take a `Self`-based type.
-///
 /// ```
 /// #[portrait::make]
 /// trait Foo {
@@ -403,7 +430,6 @@ pub use portrait_codegen::derive;
 ///
 /// Traits are implemented for generic types as long as the implementation is feasible,
 /// unlike the standard macros that implement on the generic variables directly.
-///
 /// ```
 /// #[portrait::make]
 /// trait Create {
