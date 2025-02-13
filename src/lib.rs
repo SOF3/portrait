@@ -187,7 +187,7 @@ pub use portrait_codegen::default;
 /// # Syntax
 /// ```
 /// # /*
-/// #[portrait::fill(portrait::delegate($delegate_type:ty, $self_to_delegate_value:expr))]
+/// #[portrait::fill(portrait::delegate($delegate_type:ty; $self_to_delegate_value:expr))]
 /// # */
 /// ```
 ///
@@ -354,8 +354,8 @@ pub use portrait_codegen::derive;
 /// # */
 /// ```
 ///
-/// ## `either`
-/// If the `either` option is applied, when deriving from enums,
+/// ## `enum_either`
+/// If the `enum_either` option is applied, when deriving from enums,
 /// each match arm is wrapped with a nested tree of `Either::Left(..)`/`Either::Right(..)`s
 /// such that each arm bijects to a unique variant of some `Either<Either<Either<..>>>`.
 /// This is useful for delegating to separate enum implementations
@@ -377,7 +377,7 @@ pub use portrait_codegen::derive;
 ///
 /// ```
 /// # /*
-/// #[portrait(derive_delegate(enum_either = left_wrapper, right_wrapper))]
+/// #[portrait(derive_delegate(enum_either = (left_wrapper, right_wrapper)))]
 /// fn as_trait(&self) -> impl Trait;
 /// # */
 /// ```
